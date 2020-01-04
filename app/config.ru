@@ -1,5 +1,5 @@
 require 'rack'
-require_relative './server/my_server'
+require_relative '../server/my_server'
 
 class App
   def call(env)
