@@ -1,5 +1,4 @@
 require 'socket'
-require 'puma/null_io'
 require_relative './rack/handler/my_server'
 
 module MyServer
@@ -45,11 +44,14 @@ module MyServer
           end
 
           status, header, body = @app.call(RACK_ENV.merge(req[1..-2].map { |a| a.split(': ') }.to_h))
-          res = <<~HTTP
-            HTTP/1.1 200 OK
-            Content-Type: text/plain
 
-            Hello!
+          status = "HTTP/1.1 200 OK" if status.eql? 200
+
+          res = <<~HTTP
+            #{status}
+            #{header.map { |k, v| "#{k}: #{v}" }.join(', ')}\r\n
+
+            # body will be here
           HTTP
 
           socket.puts res
