@@ -45,13 +45,16 @@ module MyServer
 
           status, header, body = @app.call(RACK_ENV.merge(req[1..-2].map { |a| a.split(': ') }.to_h))
 
+          res_body = []
+          body.each { |body| res_body << body }
+
           status = "HTTP/1.1 200 OK" if status.eql? 200
 
           res = <<~HTTP
             #{status}
             #{header.map { |k, v| "#{k}: #{v}" }.join(', ')}\r\n
 
-            # body will be here
+            #{res_body.join("\n")}
           HTTP
 
           socket.puts res
