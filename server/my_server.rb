@@ -27,6 +27,9 @@ module MyServer
 
     def initialize(*args)
       @host, @port, @app = args
+      @status = nil
+      @header = nil
+      @body = nil
     end
 
     def start
@@ -34,34 +37,43 @@ module MyServer
 
       while true
         socket = server.accept
-
-        req = []
+        request = []
 
         begin
           while message = socket.gets
-            req << message
+            request << message
             break if message.chomp.empty?
           end
 
-          status, header, body = @app.call(RACK_ENV.merge(req[1..-2].map { |a| a.split(': ') }.to_h))
+          @status, @header, @body = @app.call(RACK_ENV.merge(request[1..-2].map { |a| a.split(': ') }.to_h))
 
-          res_body = []
-          body.each { |body| res_body << body }
-
-          status = "HTTP/1.1 200 OK" if status.eql? 200
-
-          res = <<~HTTP
-            #{status}
-            #{header.map { |k, v| "#{k}: #{v}" }.join(', ')}\r\n
-
-            #{res_body.join("\n")}
-          HTTP
-
-          socket.puts res
+          socket.puts response
         ensure
           socket.close
         end
       end
+    end
+
+    def status
+      "HTTP/1.1 200 OK" if @status.eql? 200
+    end
+
+    def header
+      @header.map { |k, v| "#{k}: #{v}" }.join(', ')
+    end
+
+    def body
+      res_body = []
+      @body.each { |body| res_body << body }
+      res_body.join("\n")
+    end
+
+    def response
+      <<~MESSAGE
+        #{status}
+        #{header}\r\n
+        #{body}
+      MESSAGE
     end
   end
 end
