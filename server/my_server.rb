@@ -26,31 +26,29 @@ module MyServer
     end
 
     def start
-      server = TCPServer.open(@port)
+      server = TCPServer.new(@host, @port)
 
       puts <<~MESSAGE
         #{@app} is running on #{@host}:#{@port}
         => Use Ctrl-C to stop
       MESSAGE
 
-      while true
-        socket = server.accept
+      loop do
+        client = server.accept
 
         begin
-          while message = socket.gets
-            puts message if message.start_with?('Host:') || message.include?('HTTP')
-            break if message.chomp.empty?
-          end
+          request = client.readpartial(2048)
+          puts request.split("\r\n")[0..1]
 
           @status, @header, @body = @app.call(RACK_ENV)
 
-          socket.puts <<~MESSAGE
+          client.puts <<~MESSAGE
             #{status}
             #{header}\r\n
             #{body}
           MESSAGE
         ensure
-          socket.close
+          client.close
         end
       end
     end
