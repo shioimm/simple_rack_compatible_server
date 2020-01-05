@@ -10,8 +10,7 @@ module Rack
         host = options.delete(:Host) || default_host
         port = options.delete(:Port) || 9292
         args = [host, port, app]
-        server = ::MyServer::Server.new(*args)
-        server.start
+        ::MyServer::Server.new(*args).start
       end
     end
 

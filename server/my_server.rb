@@ -3,52 +3,52 @@ require_relative './rack/handler/my_server'
 
 module MyServer
   class Server
-    def self.stringio_encode(content = '')
-      io = StringIO.new(content)
-      io.binmode
-      io.set_encoding "ASCII-8BIT" if io.respond_to? :set_encoding
-      io
-    end
-
     RACK_ENV = {
-      'PATH_INFO' => '/',
-      'QUERY_STRING' => '',
-      'REQUEST_METHOD' =>'GET',
-      'SERVER_NAME' => 'MY_SERVER',
-      'SERVER_PORT' => @port.to_s,
-      'rack.version' => Rack::VERSION,
-      'rack.input' => stringio_encode,
-      'rack.errors' => $stderr,
-      'rack.multithread' => false,
+      'PATH_INFO'         => '/',
+      'QUERY_STRING'      => '',
+      'REQUEST_METHOD'    => 'GET',
+      'SERVER_NAME'       => 'MY_SERVER',
+      'SERVER_PORT'       => @port.to_s,
+      'rack.version'      => Rack::VERSION,
+      'rack.input'        => StringIO.new('').set_encoding('ASCII-8BIT'),
+      'rack.errors'       => $stderr,
+      'rack.multithread'  => false,
       'rack.multiprocess' => false,
-      'rack.run_once' => false,
-      'rack.url_scheme' => 'http',
+      'rack.run_once'     => false,
+      'rack.url_scheme'   => 'http',
     }
 
     def initialize(*args)
       @host, @port, @app = args
       @status = nil
       @header = nil
-      @body = nil
+      @body   = nil
     end
 
     def start
       server = TCPServer.open(@port)
-      puts starting_message
+
+      puts <<~MESSAGE
+        #{@app} is running on #{@host}:#{@port}
+        => Use Ctrl-C to stop
+      MESSAGE
 
       while true
         socket = server.accept
-        request = []
 
         begin
           while message = socket.gets
-            request << message
+            puts message if message.start_with?('Host:') || message.include?('HTTP')
             break if message.chomp.empty?
           end
 
-          @status, @header, @body = @app.call(RACK_ENV.merge(request[1..-2].map { |a| a.split(': ') }.to_h))
+          @status, @header, @body = @app.call(RACK_ENV)
 
-          socket.puts response
+          socket.puts <<~MESSAGE
+            #{status}
+            #{header}\r\n
+            #{body}
+          MESSAGE
         ensure
           socket.close
         end
@@ -67,21 +67,6 @@ module MyServer
       res_body = []
       @body.each { |body| res_body << body }
       res_body.join("\n")
-    end
-
-    def response
-      <<~MESSAGE
-        #{status}
-        #{header}\r\n
-        #{body}
-      MESSAGE
-    end
-
-    def starting_message
-      <<~MESSAGE
-        #{@app} is running on #{@host}:#{@port}
-        Use Ctrl-C to stop
-      MESSAGE
     end
   end
 end
