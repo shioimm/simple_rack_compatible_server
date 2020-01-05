@@ -34,6 +34,7 @@ module MyServer
 
     def start
       server = TCPServer.open(@port)
+      puts starting_message
 
       while true
         socket = server.accept
@@ -73,6 +74,13 @@ module MyServer
         #{status}
         #{header}\r\n
         #{body}
+      MESSAGE
+    end
+
+    def starting_message
+      <<~MESSAGE
+        #{@app} is running on #{@host}:#{@port}
+        Use Ctrl-C to stop
       MESSAGE
     end
   end
