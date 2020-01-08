@@ -4,9 +4,9 @@ require_relative './rack/handler/my_server'
 module MyServer
   class Server
     RACK_ENV = {
-      'PATH_INFO'         => '/',
+      'PATH_INFO'         => @path || '/',
       'QUERY_STRING'      => '',
-      'REQUEST_METHOD'    => 'GET',
+      'REQUEST_METHOD'    => @method || 'GET',
       'SERVER_NAME'       => 'MY_SERVER',
       'SERVER_PORT'       => @port.to_s,
       'rack.version'      => Rack::VERSION,
@@ -15,11 +15,14 @@ module MyServer
       'rack.multithread'  => false,
       'rack.multiprocess' => false,
       'rack.run_once'     => false,
-      'rack.url_scheme'   => 'http',
+      'rack.url_scheme'   => @schema&.downcase&.slice(/http[a-z]*/) || 'http'
     }
 
     def initialize(*args)
       @host, @port, @app = args
+      @method = nil
+      @path   = nil
+      @schema = nil
       @status = nil
       @header = nil
       @body   = nil
@@ -38,7 +41,9 @@ module MyServer
 
         begin
           request = client.readpartial(2048)
-          puts request.split("\r\n")[0..1]
+          @method, @path, @schema = request.split("\r\n").first.split
+
+          puts "Received request message: #{@method} #{@path} #{@schema}"
 
           @status, @header, @body = @app.call(RACK_ENV)
 
