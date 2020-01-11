@@ -3,29 +3,32 @@ require_relative './rack/handler/my_server'
 
 module MyServer
   class Server
-    RACK_ENV = {
-      'PATH_INFO'         => @path || '/',
-      'QUERY_STRING'      => '',
-      'REQUEST_METHOD'    => @method || 'GET',
-      'SERVER_NAME'       => 'MY_SERVER',
-      'SERVER_PORT'       => @port.to_s,
-      'rack.version'      => Rack::VERSION,
-      'rack.input'        => StringIO.new('').set_encoding('ASCII-8BIT'),
-      'rack.errors'       => $stderr,
-      'rack.multithread'  => false,
-      'rack.multiprocess' => false,
-      'rack.run_once'     => false,
-      'rack.url_scheme'   => @schema&.downcase&.slice(/http[a-z]*/) || 'http'
-    }
-
     def initialize(*args)
       @host, @port, @app = args
       @method = nil
       @path   = nil
       @schema = nil
+      @query  = nil
       @status = nil
       @header = nil
       @body   = nil
+    end
+
+    def rack_env
+      {
+        'PATH_INFO'         => @path   || '/',
+        'QUERY_STRING'      => @query  || '',
+        'REQUEST_METHOD'    => @method || 'GET',
+        'SERVER_NAME'       => 'MY_SERVER',
+        'SERVER_PORT'       => @port.to_s,
+        'rack.version'      => Rack::VERSION,
+        'rack.input'        => StringIO.new('').set_encoding('ASCII-8BIT'),
+        'rack.errors'       => $stderr,
+        'rack.multithread'  => false,
+        'rack.multiprocess' => false,
+        'rack.run_once'     => false,
+        'rack.url_scheme'   => @schema&.downcase&.slice(/http[a-z]*/) || 'http'
+      }
     end
 
     def start
@@ -41,11 +44,12 @@ module MyServer
 
         begin
           request = client.readpartial(2048)
-          @method, @path, @schema = request.split("\r\n").first.split
+          @method, path, @schema = request.split("\r\n").first.split
+          @path, @query = path.split('?')
 
           puts "Received request message: #{@method} #{@path} #{@schema}"
 
-          @status, @header, @body = @app.call(RACK_ENV)
+          @status, @header, @body = @app.call(rack_env)
 
           client.puts <<~MESSAGE
             #{status}
