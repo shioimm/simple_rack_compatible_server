@@ -1,7 +1,7 @@
 require 'socket'
-require_relative './rack/handler/my_server'
+require_relative './rack/handler/simple_rack_compatible_server'
 
-module MyServer
+module SimpleRackCompatibleServer
   class Server
     def initialize(*args)
       @host, @port, @app = args

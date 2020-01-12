@@ -1,5 +1,5 @@
 require 'sinatra'
-require_relative '../../server/my_server'
+require_relative '../../server/simple_rack_compatible_server'
 
 get '/' do
   'Hoge'
