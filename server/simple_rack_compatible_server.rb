@@ -14,7 +14,7 @@ module SimpleRackCompatibleServer
       @body   = nil
     end
 
-    def rack_env
+    def env
       {
         'PATH_INFO'         => @path   || '/',
         'QUERY_STRING'      => @query  || '',
@@ -49,7 +49,7 @@ module SimpleRackCompatibleServer
 
           puts "Received request message: #{@method} #{@path} #{@schema}"
 
-          @status, @header, @body = @app.call(rack_env)
+          @status, @header, @body = @app.call(env)
 
           client.puts <<~MESSAGE
             #{status}
@@ -63,7 +63,7 @@ module SimpleRackCompatibleServer
     end
 
     def status
-      "HTTP/1.1 200 OK" if @status.eql? 200
+      "#{@schema} 200 OK" if @status.eql? 200
     end
 
     def header
