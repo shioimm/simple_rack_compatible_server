@@ -9,6 +9,7 @@ module SimpleRackCompatibleServer
       @path   = nil
       @schema = nil
       @query  = nil
+      @input  = nil
       @status = nil
       @header = nil
       @body   = nil
@@ -22,7 +23,7 @@ module SimpleRackCompatibleServer
         'SERVER_NAME'       => 'MY_SERVER',
         'SERVER_PORT'       => @port.to_s,
         'rack.version'      => Rack::VERSION,
-        'rack.input'        => StringIO.new('').set_encoding('ASCII-8BIT'),
+        'rack.input'        => StringIO.new(@input || '').set_encoding('ASCII-8BIT'),
         'rack.errors'       => $stderr,
         'rack.multithread'  => false,
         'rack.multiprocess' => false,
@@ -43,9 +44,10 @@ module SimpleRackCompatibleServer
         client = server.accept
 
         begin
-          request = client.readpartial(2048)
-          @method, path, @schema = request.split("\r\n").first.split
+          request = client.readpartial(2048).split("\r\n")
+          @method, path, @schema = request.first.split
           @path, @query = path.split('?')
+          @input = request.index('') ? request[request.index('') + 1] : ''
 
           puts "Received request message: #{@method} #{@path} #{@schema}"
 
