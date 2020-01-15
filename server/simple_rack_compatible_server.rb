@@ -65,7 +65,18 @@ module SimpleRackCompatibleServer
     end
 
     def status
-      "#{@schema} 200 OK" if @status.eql? 200
+      case @status
+      when 200
+        "#{@schema} 200 OK"
+      when 201
+        "#{@schema} 201 Created"
+      when 204
+        "#{@schema} 204 NoContent"
+      when 404
+        "#{@schema} 404 NotFound"
+      when 500
+        "#{@schema} 500 InternalServerError"
+      end
     end
 
     def header
