@@ -1,0 +1,17 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <p>Current post is <%= @content %>.</p>
+  <form action='/contents' method='POST'>
+    <input type="hidden" name="_method" value="PUT">
+    <input type="text" name="content">
+    <input type="submit" value="Post">
+  </form>
+  <form action='/contents' method='POST'>
+    <input type='hidden' name='_method' value='DELETE'>
+    <input type='submit' value='Delete'>
+  </form>
+</body>
+</html>

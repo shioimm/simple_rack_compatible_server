@@ -4,7 +4,10 @@
 </head>
 <body>
   <div>
-    <p>You posted <%= @post %></p>
+    <p>You posted <%= @content || 'nothing.' %></p>
+    <a href='/contents/edit'>Edit</a>
+  </div>
+  <div>
     <a href='/'>Back to top</a>
   </div>
 </body>
