@@ -20,7 +20,7 @@ module SimpleRackCompatibleServer
         'PATH_INFO'         => @path   || '/',
         'QUERY_STRING'      => @query  || '',
         'REQUEST_METHOD'    => @method || 'GET',
-        'SERVER_NAME'       => 'MY_SERVER',
+        'SERVER_NAME'       => 'simple_rack_compatible_server',
         'SERVER_PORT'       => @port.to_s,
         'rack.version'      => Rack::VERSION,
         'rack.input'        => StringIO.new(@input || '').set_encoding('ASCII-8BIT'),
