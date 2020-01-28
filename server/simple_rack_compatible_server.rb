@@ -41,6 +41,8 @@ module SimpleRackCompatibleServer
       MESSAGE
 
       loop do
+        trap(:INT) { shutdown }
+
         client = server.accept
 
         begin
@@ -62,6 +64,11 @@ module SimpleRackCompatibleServer
           client.close
         end
       end
+    end
+
+    def shutdown
+      puts 'SimpleRackCompatibleServer is stopped.'
+      exit
     end
 
     def status
