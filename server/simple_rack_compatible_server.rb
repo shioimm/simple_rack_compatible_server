@@ -55,11 +55,7 @@ module SimpleRackCompatibleServer
 
           @status, @header, @body = @app.call(env)
 
-          client.puts <<~MESSAGE
-            #{status}
-            #{header}\r\n
-            #{body}
-          MESSAGE
+          client.puts [status, header, '', body].join("\r\n")
         ensure
           client.close
         end
