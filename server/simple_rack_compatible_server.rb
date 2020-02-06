@@ -83,7 +83,7 @@ module SimpleRackCompatibleServer
     end
 
     def header
-      @header.map { |k, v| "#{k}: #{v}" }.join(', ')
+      @header.map { |k, v| [k, v].join(': ') }.join("\r\n")
     end
 
     def body
