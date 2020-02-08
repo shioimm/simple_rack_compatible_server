@@ -7,7 +7,7 @@ module SimpleRackCompatibleServer
       @host, @port, @app = args
       @method = nil
       @path   = nil
-      @schema = nil
+      @scheme = nil
       @query  = nil
       @input  = nil
       @status = nil
@@ -28,7 +28,7 @@ module SimpleRackCompatibleServer
         'rack.multithread'  => false,
         'rack.multiprocess' => false,
         'rack.run_once'     => false,
-        'rack.url_scheme'   => @schema&.downcase&.slice(/http[a-z]*/) || 'http'
+        'rack.url_scheme'   => @scheme&.downcase&.slice(/http[a-z]*/) || 'http'
       }
     end
 
@@ -47,11 +47,11 @@ module SimpleRackCompatibleServer
 
         begin
           request = client.readpartial(2048).split("\r\n")
-          @method, path, @schema = request.first.split
+          @method, path, @scheme = request.first.split
           @path, @query = path.split('?')
           @input = request.index('') ? request[request.index('') + 1] : ''
 
-          puts "Received request message: #{@method} #{@path} #{@schema}"
+          puts "Received request message: #{@method} #{@path} #{@scheme}"
 
           @status, @header, @body = @app.call(env)
 
@@ -70,15 +70,15 @@ module SimpleRackCompatibleServer
     def status
       case @status
       when 200
-        "#{@schema} 200 OK"
+        "#{@scheme} 200 OK"
       when 201
-        "#{@schema} 201 Created"
+        "#{@scheme} 201 Created"
       when 204
-        "#{@schema} 204 NoContent"
+        "#{@scheme} 204 NoContent"
       when 404
-        "#{@schema} 404 NotFound"
+        "#{@scheme} 404 NotFound"
       when 500
-        "#{@schema} 500 InternalServerError"
+        "#{@scheme} 500 InternalServerError"
       end
     end
 
