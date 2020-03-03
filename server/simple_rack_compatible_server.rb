@@ -3,6 +3,8 @@ require_relative './rack/handler/simple_rack_compatible_server'
 
 module SimpleRackCompatibleServer
   class Server
+    MAX_BYTE = 1_073_741_824 # Refs to maximum length of PostgreSQL's text column
+
     def initialize(*args)
       @host, @port, @app = args
       @method = nil
@@ -13,6 +15,7 @@ module SimpleRackCompatibleServer
       @status = nil
       @header = nil
       @body   = nil
+      @posted = false
     end
 
     def env
@@ -46,7 +49,20 @@ module SimpleRackCompatibleServer
         client = server.accept
 
         begin
-          request = client.readpartial(2048).split("\r\n")
+          request = []
+
+          while buf = client.gets
+            request << buf.chomp
+
+            if request.last.empty?
+              if request.first.include?('POST') || request.first.include?('PUT')
+                request << client.readpartial(MAX_BYTE)
+              end
+
+              break
+            end
+          end
+
           @method, path, @scheme = request.first.split
           @path, @query = path.split('?')
           @input = request.index('') ? request[request.index('') + 1] : ''
