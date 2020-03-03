@@ -5,6 +5,14 @@ module SimpleRackCompatibleServer
   class Server
     MAX_BYTE = 1_073_741_824 # Refs to maximum length of PostgreSQL's text column
 
+    using Module.new {
+      refine Array do
+        def has_body?
+          self.first.include?('POST') || self.first.include?('PUT')
+        end
+      end
+    }
+
     def initialize(*args)
       @host, @port, @app = args
       @method = nil
@@ -55,10 +63,7 @@ module SimpleRackCompatibleServer
             request << buf.chomp
 
             if request.last.empty?
-              if request.first.include?('POST') || request.first.include?('PUT')
-                request << client.readpartial(MAX_BYTE)
-              end
-
+              request << client.readpartial(MAX_BYTE) if request.has_body?
               break
             end
           end
@@ -83,29 +88,31 @@ module SimpleRackCompatibleServer
       exit
     end
 
-    def status
-      case @status
-      when 200
-        "#{@scheme} 200 OK"
-      when 201
-        "#{@scheme} 201 Created"
-      when 204
-        "#{@scheme} 204 NoContent"
-      when 404
-        "#{@scheme} 404 NotFound"
-      when 500
-        "#{@scheme} 500 InternalServerError"
+    private
+
+      def status
+        case @status
+        when 200
+          "#{@scheme} 200 OK"
+        when 201
+          "#{@scheme} 201 Created"
+        when 204
+          "#{@scheme} 204 NoContent"
+        when 404
+          "#{@scheme} 404 NotFound"
+        when 500
+          "#{@scheme} 500 InternalServerError"
+        end
       end
-    end
 
-    def header
-      @header.map { |k, v| [k, v].join(': ') }.join("\r\n")
-    end
+      def header
+        @header.map { |k, v| [k, v].join(': ') }.join("\r\n")
+      end
 
-    def body
-      res_body = []
-      @body.each { |body| res_body << body }
-      res_body.join("\n")
-    end
+      def body
+        res_body = []
+        @body.each { |body| res_body << body }
+        res_body.join("\n")
+      end
   end
 end
